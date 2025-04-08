@@ -7,6 +7,8 @@ project(loreinui C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-add_subdirectory(examples)
-add_subdirectory(lorien-core)
+add_subdirectory(lorien)
+
 add_subdirectory(lorien-platforms)
+
+add_subdirectory(examples)
