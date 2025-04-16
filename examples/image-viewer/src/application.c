@@ -27,7 +27,7 @@ void imageViewerPlatformError(void* pUserData, lor_PlatformErrorPtr pError) {
 
 bool imageViewerPlatformUpdate(void* pUserData) {
     printf("Updating application...\n");
-    return false;
+    return true;
 }
 
 void imageViewerPlatformDestroy(void* pUserData, lor_AllocatorPtr pAllocator) {

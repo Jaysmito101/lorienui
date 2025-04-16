@@ -7,10 +7,17 @@
 struct lor_PlatformAnyGLFWOpengl3;
 struct lor_PlatformAnyGLFWOpengl3Config;
 
+struct GLFWwindow;
+typedef struct GLFWwindow GLFWwindow;
+
 
 // struct 
 struct lor_PlatformAnyGLFWOpengl3Config {
-    int placeholder; // Placeholder for future configuration options
+    bool windowUndecorated;
+    int windowStartingWidth;
+    int windowStartingHeight;
+	const char* windowTitle;
+
 };
 typedef struct lor_PlatformAnyGLFWOpengl3Config lor_PlatformAnyGLFWOpengl3Config;
 typedef struct lor_PlatformAnyGLFWOpengl3Config* lor_PlatformAnyGLFWOpengl3ConfigPtr;
@@ -20,6 +27,8 @@ struct lor_PlatformAnyGLFWOpengl3 {
     lor_Allocator sAllocator;
     bool sIsAllocatorOwned;
     bool sIsRunning;
+
+	GLFWwindow* pWindow;
     
     lor_PlatformErrorFn fErrorPlatform;
     lor_PlatformUpdateFn fUpdatePlatform;

@@ -8,7 +8,9 @@ int main() {
     lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
 
     lor_PlatformAnyGLFWOpengl3Config customPlatformConfig = { 0 };
-    customPlatformConfig.placeholder = 0; // Placeholder for future configuration options
+	customPlatformConfig.windowStartingWidth = 1200;
+	customPlatformConfig.windowStartingHeight = 800;
+	customPlatformConfig.windowTitle = "LorienUI/Samples/Image Viewer - Jaysmito Mukherjee";
    
     lor_PlatformConfig platformConfig = { LOR_STRUCT_PLATFORM_CONFIG };
     platformConfig.pUserData = NULL;
