@@ -3,6 +3,7 @@ file(GLOB_RECURSE IMAGE_VIEWER_INCLUDE_FILES "include/*.h")
 add_executable(image-viewer 
     ${IMAGE_VIEWER_INCLUDE_FILES} # needed for visual studio to show the files in the project
     "src/main.c"
+    "src/application.c"
     "src/ui.c"
 )
 

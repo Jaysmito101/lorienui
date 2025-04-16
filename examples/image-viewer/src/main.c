@@ -1,30 +1,30 @@
-#include "lorien/lorien.h"
-#include "ui.h"
+#include <lorien/lorien.h>
+#include "lorien/platforms/any-glfw-opengl3.h"
+
+#include "application.h"
+
 
 int main() {
     lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
-    
-    lor_ApplicationConfig applicationConfig = { LOR_STRUCT_APPLICATION_CONFIG };
-    // applicationConfig.fBuildUI = buildImageViewerUI;
-    applicationConfig.pAllocator = NULL; // use default allocator
-    applicationConfig.pUserData = NULL;
-    lor_ApplicationPtr pApplication = NULL;
-    if ((result = lorApplicationBuild(&applicationConfig, &pApplication)) != LOR_RESULT_SUCCESS) {
-        fprintf(stderr, "Failed to build application: %d\n", result);
+
+    lor_PlatformAnyGLFWOpengl3Config customPlatformConfig = { 0 };
+    customPlatformConfig.placeholder = 0; // Placeholder for future configuration options
+   
+    lor_PlatformConfig platformConfig = { LOR_STRUCT_PLATFORM_CONFIG };
+    platformConfig.pUserData = NULL;
+    platformConfig.fPreloadPlatform = NULL; // No preload function for now
+    platformConfig.fBuildApplication = buildImageViewerApplication;
+    platformConfig.fErrorPlatform = imageViewerPlatformError;
+    platformConfig.fUpdatePlatform = imageViewerPlatformUpdate;
+    platformConfig.fDestroyPlatform = imageViewerPlatformDestroy;
+    platformConfig.pCustomPlatformConfig = &customPlatformConfig;
+
+    lor_PlatformAnyGLFWOpengl3Ptr platform = NULL;
+    if ((result = lorPlatformAnyGLFWOpengl3(&platformConfig, &platform)) != LOR_RESULT_SUCCESS) {
+        fprintf(stderr, "Failed to create platform: %d\n", result);
         return EXIT_FAILURE;
     }
-
-    // struct lor_PlatformConfig platformConfig = { LOR_STRUCT_PLATFORM_CONFIG };
-    // platformConfig.pApplication = pApplication; // takes ownership of the application
-
-    // struct lor_Platform* pPlatform = lorBuildPlatform(&platformConfig, NULL);
-    // if (pPlatform == NULL) {
-    //     fprintf(stderr, "Failed to build platform.\n");
-    //     return EXIT_FAILURE;
-    // }
-
-    // lorPlatformRun(pPlatform);
-    // lorPlatformDestroy(pPlatform);
-
+    lorPlatformAnyGLFWOpengl3Run(platform);
+    lorPlatformAnyGLFWOpengl3Destroy(platform);
     return 0;
 }

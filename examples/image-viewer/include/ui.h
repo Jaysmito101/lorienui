@@ -3,6 +3,6 @@
 #ifndef LORIEN_IMAGE_VIEWER_UI_H
 #define LORIEN_IMAGE_VIEWER_UI_H
 
-struct lor_UI* buildImageViewerUI(void* pUserData, struct lor_Allocator* allocator);
+lor_UIPtr buildImageViewerUI(void* pUserData, lor_AllocatorPtr pAllocator);
 
 #endif // LORIEN_IMAGE_VIEWER_UI_H

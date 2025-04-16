@@ -35,6 +35,7 @@ lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_Application
     pApplication->sType = LOR_STRUCT_APPLICATION;
     pApplication->sAllocator = allocator;
     pApplication->pUserData = pConfig->pUserData;
+    pApplication->sIsAllocatorOwned = (pConfig->pAllocator == NULL);
 
     *ppApplication = pApplication;
     return LOR_RESULT_SUCCESS;
@@ -48,6 +49,9 @@ void lorApplicationDestroy(lor_ApplicationPtr pApplication) {
     }   
 #endif
     lor_Allocator allocator = pApplication->sAllocator;
+    bool isAllocatorOwned = pApplication->sIsAllocatorOwned;
     lorAllocatorFastFree(&allocator, LOR_ALLOCATION_TYPE_GENERAL, pApplication);
-    lorAllocatorDestroy(&allocator);
+    if (isAllocatorOwned) {
+        lorAllocatorDestroy(&allocator);
+    }
 }

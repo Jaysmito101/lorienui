@@ -5,7 +5,7 @@ set(LORIEN_PLATFORM_ANY_GLFW_OPENGL3_INCLUDE_DIRS
     PARENT_SCOPE
 )
 set(LORIEN_PLATFORM_ANY_GLFW_OPENGL3_SOURCES
-    "src/platform.c"
+    "src/any-glfw-opengl3.c"
 )   
 
 add_library(lorien-platform-any-glfw-opengl3-static STATIC 
@@ -18,5 +18,30 @@ add_library(lorien-platform-any-glfw-opengl3-shared SHARED
     ${LORIEN_PLATFORM_ANY_GLFW_OPENGL3_SOURCES}
 )
 
-target_include_directories(lorien-platform-any-glfw-opengl3-static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(lorien-platform-any-glfw-opengl3-shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(lorien-platform-any-glfw-opengl3-static 
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    PUBLIC ${LORIEN_INCLUDE_DIRS}
+    PUBLIC ${GLAD_INCLUDE_DIRS}
+    PUBLIC ${GLFW_INCLUDE_DIRS}
+)
+
+target_include_directories(lorien-platform-any-glfw-opengl3-shared 
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    PUBLIC ${LORIEN_INCLUDE_DIRS}
+    PUBLIC ${GLAD_INCLUDE_DIRS}
+    PUBLIC ${GLFW_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    lorien-platform-any-glfw-opengl3-shared
+    PUBLIC lorien-shared
+    glad
+    glfw
+)
+
+target_link_libraries(
+    lorien-platform-any-glfw-opengl3-static
+    PUBLIC lorien-static
+    glad
+    glfw
+)

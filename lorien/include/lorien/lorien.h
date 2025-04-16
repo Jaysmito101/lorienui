@@ -118,16 +118,23 @@ struct lor_UIConfig;
 struct lor_UI;
 struct lor_UIElementEmpty;
 struct lor_UILayout;
-
 struct lor_Allocator;
+struct lor_PlatformError;
 
 // function types
-typedef struct lor_UI* (*lor_BuildUIFn)(void*, struct lor_Allocator*);
+typedef lor_Result (*lor_BuildUIFn)(void*, struct lor_Allocator*, struct lor_UI**);
 typedef void (*lor_AllocatorDestroyFn)(void*);
-typedef enum lor_Result (*lor_AllocatorAllocateFn)(void*, size_t, lor_AllocationType, void**);
+typedef lor_Result (*lor_AllocatorAllocateFn)(void*, size_t, lor_AllocationType, void**);
 typedef void (*lor_AllocatorAutoFreeFn)(void*, void*);
 typedef void (*lor_AllocatorFastFreeFn)(void*, lor_AllocationType, void*);
 typedef void (*lor_AllocatorDefragmentFn)(void*);
+
+typedef void (*lor_PlatformPreloadFn)(void*, struct lor_Allocator*);
+typedef lor_Result (*lor_PlatformBuildApplicationFn)(void*, struct lor_Allocator*, struct lor_Application**);
+typedef void (*lor_PlatformErrorFn)(void*, struct lor_PlatformError*);
+typedef bool (*lor_PlatformUpdateFn)(void*);
+typedef void (*lor_PlatformRenderFn)(void*);
+typedef void (*lor_PlatformDestroyFn)(void*, struct lor_Allocator*);
 
 // structs
 struct lor_Allocator {
@@ -142,14 +149,6 @@ struct lor_Allocator {
 typedef struct lor_Allocator lor_Allocator;
 typedef lor_Allocator* lor_AllocatorPtr;
 
-struct lor_PlatformConfig {
-    lor_StructTypes sType;
-    struct lor_Application* pApplication;
-    void* pUserData;
-};
-typedef struct lor_PlatformConfig lor_PlatformConfig;
-typedef lor_PlatformConfig* lor_PlatformConfigPtr;
-
 struct lor_ApplicationConfig {
     lor_StructTypes sType;
     lor_BuildUIFn fBuildUI;
@@ -161,7 +160,8 @@ typedef lor_ApplicationConfig* lor_ApplicationConfigPtr;
 
 struct lor_Application {
     lor_StructTypes sType;
-    struct lor_Allocator sAllocator;
+    lor_Allocator sAllocator;
+    bool sIsAllocatorOwned;
     void* pUserData;
 };
 typedef struct lor_Application lor_Application;
@@ -203,6 +203,32 @@ typedef struct lor_UILayout lor_UILayout;
 typedef lor_UILayout* lor_UILayoutPtr;
 
 
+struct lor_PlatformConfig {
+    lor_StructTypes sType;
+    lor_PlatformPreloadFn fPreloadPlatform;
+    lor_PlatformBuildApplicationFn fBuildApplication;
+    lor_PlatformErrorFn fErrorPlatform;
+    lor_PlatformUpdateFn fUpdatePlatform;
+    lor_PlatformRenderFn fRenderPlatform;
+    lor_PlatformDestroyFn fDestroyPlatform;
+    lor_AllocatorPtr pAllocator;
+    void* pCustomPlatformConfig;
+    void* pUserData;
+};
+typedef struct lor_PlatformConfig lor_PlatformConfig;
+typedef lor_PlatformConfig* lor_PlatformConfigPtr;
+
+struct lor_PlatformError {
+    lor_StructTypes sType;
+    uint32_t sErrorCode;
+    const char* sErrorMessage;
+    void* pExtraData;
+};
+typedef struct lor_PlatformError lor_PlatformError;
+typedef lor_PlatformError* lor_PlatformErrorPtr;
+
+
+
 // functions
 LOR_API lor_Result lorGetDefaultAllocator(lor_AllocatorPtr pAllocator);
 
@@ -217,9 +243,5 @@ LOR_API lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_App
 LOR_API void lorApplicationDestroy(lor_ApplicationPtr pApplication);
 
 
-// platform functions
-LOR_API extern struct lor_Platform* lorBuildPlatform(struct lor_PlatformConfig* pConfig);
-LOR_API extern void lorPlatformRun(struct lor_Platform* pPlatform);
-LOR_API extern void lorDestroyPlatform(struct lor_Platform* pPlatform);
 
 #endif // define LORIEN_H
