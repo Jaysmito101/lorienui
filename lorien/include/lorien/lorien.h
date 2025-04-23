@@ -39,8 +39,13 @@
 
 
 // macros
+#ifdef LOR_DEBUG
 #define LOR_ASSERT(x) assert(x)
 #define LOR_ASSERT_MSG(x, msg) assert(x && msg)
+#else
+#define LOR_ASSERT(x) ((void)0)
+#define LOR_ASSERT_MSG(x, msg) ((void)0)
+#endif
 
 #ifndef LOR_WARN
 #define LOR_WARN(msg) fprintf(stderr, "Warning: %s\n", msg)
@@ -84,6 +89,7 @@ enum lor_StructTypes {
     LOR_STRUCT_UI_ELEMENT_EMPTY,
     LOR_STRUCT_UI_LAYOUT,
     LOR_STRUCT_ALLOCATOR,
+    LOR_STRUCT_INPUT_STATE,
 };
 typedef enum lor_StructTypes lor_StructTypes;
 
@@ -140,6 +146,8 @@ typedef bool (*lor_PlatformUpdateFn)(void*);
 typedef void (*lor_PlatformRenderFn)(void*);
 typedef void (*lor_PlatformDestroyFn)(void*, struct lor_Allocator*);
 
+typedef bool (*lor_ConfirmationFn)(void*);
+
 // structs
 struct lor_Allocator {
     enum lor_StructTypes sType;
@@ -152,25 +160,13 @@ struct lor_Allocator {
 };
 typedef struct lor_Allocator lor_Allocator;
 typedef lor_Allocator* lor_AllocatorPtr;
-
-struct lor_ApplicationConfig {
+struct lor_InputState {
     lor_StructTypes sType;
-    lor_BuildUIFn fBuildUI;
-    lor_AllocatorPtr pAllocator;
-    void* pUserData;
-};
-typedef struct lor_ApplicationConfig lor_ApplicationConfig;
-typedef lor_ApplicationConfig* lor_ApplicationConfigPtr;
 
-struct lor_Application {
-    lor_StructTypes sType;
-    lor_Allocator sAllocator;
-    bool sIsAllocatorOwned;
-    void* pUserData;
+    bool sShouldWindowClose;
 };
-typedef struct lor_Application lor_Application;
-typedef lor_Application* lor_ApplicationPtr;
-
+typedef struct lor_InputState lor_InputState;
+typedef lor_InputState* lor_InputStatePtr;
 
 struct lor_UIConfig {
     lor_StructTypes sType;
@@ -205,6 +201,31 @@ struct lor_UILayout {
 };
 typedef struct lor_UILayout lor_UILayout;
 typedef lor_UILayout* lor_UILayoutPtr;
+
+struct lor_ApplicationConfig {
+    lor_StructTypes sType;
+    lor_BuildUIFn fBuildUI;
+    lor_AllocatorPtr pAllocator;
+    lor_ConfirmationFn fShouldClose;
+    void* pUserData;
+};
+typedef struct lor_ApplicationConfig lor_ApplicationConfig;
+typedef lor_ApplicationConfig* lor_ApplicationConfigPtr;
+
+struct lor_Application {
+    lor_StructTypes sType;
+    
+    lor_Allocator sAllocator;
+    bool sIsAllocatorOwned;
+
+    lor_InputState sCurrentInputState;
+    lor_InputState sPreviousInputState;
+    
+    lor_ConfirmationFn fShouldClose;
+    void* pUserData;
+};
+typedef struct lor_Application lor_Application;
+typedef lor_Application* lor_ApplicationPtr;
 
 
 struct lor_PlatformConfig {
@@ -242,9 +263,15 @@ LOR_API void lorAllocatorAutoFree(lor_AllocatorPtr pAllocator, void* pObject);
 LOR_API void lorAllocatorFastFree(lor_AllocatorPtr pAllocator, lor_AllocationType type, void* pObject);
 LOR_API void lorAllocatorDefragment(lor_AllocatorPtr pAllocator);
 
+LOR_API void lorInputStateNewFrame(lor_InputStatePtr pInputState);
+LOR_API void lorInputStateSwap(lor_InputStatePtr pCurrentState, lor_InputStatePtr pPreviousState);
+LOR_API void lorInputStateReset(lor_InputStatePtr pInputState);
 
 LOR_API lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_ApplicationPtr* ppApplication);
 LOR_API void lorApplicationDestroy(lor_ApplicationPtr pApplication);
+LOR_API bool lorApplicationUpdate(lor_ApplicationPtr pApplication);
+LOR_API void lorApplicationNewFrame(lor_ApplicationPtr pApplication);
+LOR_API lor_InputStatePtr lorApplicationGetInputState(lor_ApplicationPtr pApplication);
 
 
 

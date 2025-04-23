@@ -10,6 +10,7 @@ lor_Result buildImageViewerApplication(void* pUserData, lor_AllocatorPtr pAlloca
     // applicationConfig.fBuildUI = buildImageViewerUI;
     applicationConfig.pAllocator = pAllocator; // use the same allocator as the platform
     applicationConfig.pUserData = pUserData;
+    applicationConfig.fShouldClose = imageViewerShouldClose;
     if ((result = lorApplicationBuild(&applicationConfig, ppApplication)) != LOR_RESULT_SUCCESS) {
         fprintf(stderr, "Failed to build application: %d\n", result);
         return result;
@@ -26,11 +27,16 @@ void imageViewerPlatformError(void* pUserData, lor_PlatformErrorPtr pError) {
 }
 
 bool imageViewerPlatformUpdate(void* pUserData) {
-    printf("Updating application...\n");
+    // printf("Updating application...\n");
     return true;
 }
 
 void imageViewerPlatformDestroy(void* pUserData, lor_AllocatorPtr pAllocator) {
 	// Free any resources associated with the platform
 	printf("Destroying platform...\n");
+}
+
+bool imageViewerShouldClose(void* pUserData) {
+    printf("Should close application...?? YEA!\n");
+    return true;
 }

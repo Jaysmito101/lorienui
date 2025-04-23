@@ -2,12 +2,9 @@
 
 
 lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_ApplicationPtr* ppApplication) {
-#ifdef LOR_DEBUG
-    if (pConfig == NULL || ppApplication == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return LOR_RESULT_INVALID_ARGUMENT;
-    }
-#endif
+    LOR_ASSERT_MSG(pConfig != NULL, "Invalid application config provided.");
+    LOR_ASSERT_MSG(ppApplication != NULL, "Invalid application pointer provided.");
+
 
     lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
 
@@ -31,27 +28,50 @@ lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_Application
         LOR_ERROR("Failed to allocate application.");
         return result;
     }
-
+    memset(pApplication, 0, sizeof(struct lor_Application)); // Initialize to zero
     pApplication->sType = LOR_STRUCT_APPLICATION;
     pApplication->sAllocator = allocator;
     pApplication->pUserData = pConfig->pUserData;
+    pApplication->fShouldClose = pConfig->fShouldClose;
     pApplication->sIsAllocatorOwned = (pConfig->pAllocator == NULL);
+    lorInputStateReset(&pApplication->sCurrentInputState);
+    lorInputStateReset(&pApplication->sPreviousInputState);
 
     *ppApplication = pApplication;
     return LOR_RESULT_SUCCESS;
 }
 
 void lorApplicationDestroy(lor_ApplicationPtr pApplication) {
-#ifdef LOR_DEBUG
-    if (pApplication == NULL) {
-        LOR_ERROR("Invalid application provided.");
-        return;
-    }   
-#endif
+    LOR_ASSERT_MSG(pApplication != NULL, "Invalid application provided.");
     lor_Allocator allocator = pApplication->sAllocator;
     bool isAllocatorOwned = pApplication->sIsAllocatorOwned;
     lorAllocatorFastFree(&allocator, LOR_ALLOCATION_TYPE_GENERAL, pApplication);
     if (isAllocatorOwned) {
         lorAllocatorDestroy(&allocator);
     }
+}
+
+bool lorApplicationUpdate(lor_ApplicationPtr pApplication) {
+    LOR_ASSERT_MSG(pApplication != NULL, "Invalid application provided.");
+
+    bool shouldContinue = !pApplication->sCurrentInputState.sShouldWindowClose;
+    if (pApplication->sCurrentInputState.sShouldWindowClose && pApplication->fShouldClose != NULL) {
+        shouldContinue = !pApplication->fShouldClose(pApplication->pUserData);
+    }
+
+
+    return shouldContinue;
+}
+
+void lorApplicationNewFrame(lor_ApplicationPtr pApplication) {
+    LOR_ASSERT_MSG(pApplication != NULL, "Invalid application provided.");
+
+    lorInputStateNewFrame(&pApplication->sCurrentInputState);
+    lorInputStateSwap(&pApplication->sCurrentInputState, &pApplication->sPreviousInputState);
+}
+
+
+lor_InputStatePtr lorApplicationGetInputState(lor_ApplicationPtr pApplication) {
+    LOR_ASSERT_MSG(pApplication != NULL, "Invalid application provided.");
+    return &pApplication->sCurrentInputState;
 }

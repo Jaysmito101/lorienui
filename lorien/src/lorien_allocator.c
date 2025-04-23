@@ -25,12 +25,9 @@ static void __lorDefaultAllocatorDestroy(void* pUserData) {
 }
 
 static lor_Result __lorDefaultAllocatorAllocate(void* pUserData, size_t size, lor_AllocationType type, void** ppOut) {
-#ifdef LOR_DEBUG
-    if (pUserData == NULL || ppOut == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return LOR_RESULT_INVALID_ARGUMENT;
-    }
-#endif
+    LOR_ASSERT_MSG(pUserData != NULL, "Invalid user data provided.");
+    LOR_ASSERT_MSG(ppOut != NULL, "Invalid output pointer provided.");
+    
     __lor_DefaultAllocatorPtr pAllocator = (__lor_DefaultAllocatorPtr)pUserData;
 
     // TODO: For now default allocator is just a proxy to malloc/free, improve this later
@@ -53,12 +50,8 @@ static lor_Result __lorDefaultAllocatorAllocate(void* pUserData, size_t size, lo
 }
 
 static void __lorDefaultAllocatorAutoFree(void* pUserData, void* pObject) {
-#ifdef LOR_DEBUG
-    if (pUserData == NULL || pObject == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pUserData != NULL, "Invalid user data provided.");
+    LOR_ASSERT_MSG(pObject != NULL, "Invalid object provided.");
 
     __lor_DefaultAllocatorPtr pAllocator = (__lor_DefaultAllocatorPtr)pUserData;
     (void)pAllocator; // Unused for now
@@ -67,12 +60,9 @@ static void __lorDefaultAllocatorAutoFree(void* pUserData, void* pObject) {
 }
 
 static void __lorDefaultAllocatorFastFree(void* pUserData, lor_AllocationType type, void* pObject) {
-#ifdef LOR_DEBUG
-    if (pUserData == NULL || pObject == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pUserData != NULL, "Invalid user data provided.");
+    LOR_ASSERT_MSG(pObject != NULL, "Invalid object provided.");
+
     __lor_DefaultAllocatorPtr pAllocator = (__lor_DefaultAllocatorPtr)pUserData;
     (void)pAllocator; // Unused for now
     (void)type; // Unused for now
@@ -86,12 +76,7 @@ static void __lorDefaultAllocatorDefragment(void* pUserData) {
 }
 
 lor_Result lorGetDefaultAllocator(lor_AllocatorPtr pAllocator) {
-#ifdef LOR_DEBUG
-    if (pAllocator == NULL) {
-        LOR_ERROR("Invalid allocator provided.");
-        return LOR_RESULT_INVALID_ARGUMENT;
-    }
-#endif
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");    
 
     pAllocator->sType = LOR_STRUCT_ALLOCATOR;
     // Initialize the default allocator
@@ -122,33 +107,17 @@ void lorAllocatorDestroy(lor_AllocatorPtr pAllocator) {
 }
 
 lor_Result lorAllocatorAllocate(lor_AllocatorPtr pAllocator, size_t size, lor_AllocationType type, void** ppOut) {  
-#ifdef LOR_DEBUG
-    if (pAllocator == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return LOR_RESULT_INVALID_ARGUMENT;
-    }
-    if (pAllocator->fAllocate == NULL) {
-        LOR_ERROR("Allocator function not set.");
-        return LOR_RESULT_INVALID_STATE;
-    }
-
-#endif
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(pAllocator->fAllocate != NULL, "Allocator function not set.");
+    
     lor_Result result = pAllocator->fAllocate(pAllocator->pUserData, size, type, ppOut);
     return result;    
 }
 
 void lorAllocatorAutoFree(lor_AllocatorPtr pAllocator, void* pObject) {
-#ifdef LOR_DEBUG
-    if (pAllocator == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return;
-    }
-    
-    if (pAllocator->fAutoFree == NULL) {
-        LOR_ERROR("Allocator function not set.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(pAllocator->fAutoFree != NULL, "Allocator function not set.");
+
     pAllocator->fAutoFree(pAllocator->pUserData, pObject);
     if (pAllocator->fDefragment != NULL) {
         pAllocator->fDefragment(pAllocator->pUserData);
@@ -156,17 +125,8 @@ void lorAllocatorAutoFree(lor_AllocatorPtr pAllocator, void* pObject) {
 }
 
 void lorAllocatorFastFree(lor_AllocatorPtr pAllocator, lor_AllocationType type, void* pObject) {
-#ifdef LOR_DEBUG
-    if (pAllocator == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return;
-    }
-    
-    if (pAllocator->fFastFree == NULL) {
-        LOR_ERROR("Allocator function not set.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(pAllocator->fFastFree != NULL, "Allocator function not set.");
 
     pAllocator->fFastFree(pAllocator->pUserData, type, pObject);
     if (pAllocator->fDefragment != NULL) {
@@ -175,17 +135,9 @@ void lorAllocatorFastFree(lor_AllocatorPtr pAllocator, lor_AllocationType type, 
 }
 
 void lorAllocatorDefragment(lor_AllocatorPtr pAllocator) {
-#ifdef LOR_DEBUG
-    if (pAllocator == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return;
-    }
-    
-    if (pAllocator->fDefragment == NULL) {
-        LOR_ERROR("Allocator function not set.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(pAllocator->pUserData != NULL, "Invalid user data provided.");
+
     if (pAllocator->fDefragment != NULL) {
         pAllocator->fDefragment(pAllocator->pUserData);
     } else {

@@ -7,6 +7,7 @@ set(LORIEN_INCLUDE_DIRS
 set(LORIEN_SOURCES
     "src/lorien_allocator.c"
     "src/lorien_application.c"
+    "src/lorien_input_state.c"
     "src/lorien.c"
 )   
 

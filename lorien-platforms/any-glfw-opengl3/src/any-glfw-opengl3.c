@@ -28,51 +28,61 @@ void __lorGLFWErrorCallback(int error, const char* description) {
 
 void __lorGLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle key events
 }
 
 void __lorGLFWCharCallback(GLFWwindow* window, unsigned int codepoint) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle char events
 }
 
 void __lorGLFWDropCallback(GLFWwindow* window, int count, const char** paths) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle drop events
 }
 
 void __lorGLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle scroll events
 }
 
 void __lorGLFWCursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle cursor position events
 }
 
 void __lorGLFWWindowPosCallback(GLFWwindow* window, int xpos, int ypos) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle window position events
 }
 
 void __lorGLFWWindowSizeCallback(GLFWwindow* window, int width, int height) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle window size events
 }
 
 void __lorGLFWCursorEnterCallback(GLFWwindow* window, int entered) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle cursor enter events
 }
 
 void __lorGLFWWindowCloseCallback(GLFWwindow* window) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
-    // TODO: Handle window close events
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
+    pInputState->sShouldWindowClose = true;
 }
 
 void __lorGLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle mouse button events
 }
 
@@ -84,11 +94,13 @@ void __lorGLFWFramebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 void __lorGLFWWindowMaximizeCallback(GLFWwindow* window, int maximized) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle window maximize events
 }
 
 void __lorGLFWWindowFocusCallback(GLFWwindow* window, int focused) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
     // TODO: Handle window focus events
 }
 
@@ -98,15 +110,21 @@ void __lorGLFWWindowFocusCallback(GLFWwindow* window, int focused) {
 
 // do the rendering
 static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
-    (void)pPlatform;
-    
-    // pPlatform->pWindow
+#ifdef LOR_DEBUG
+    if (pPlatform == NULL) {
+        LOR_ERROR("Invalid platform provided.");
+        return;
+    }
+#endif
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, pPlatform->sFramebufferWidth, pPlatform->sFramebufferHeight);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    
+
+
     
     
 }
@@ -116,12 +134,12 @@ static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
 // ---------- API Functions  ----------
 
 lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform) {
-    #ifdef LOR_DEBUG
+#ifdef LOR_DEBUG
     if (pPlatformConfig == NULL || ppPlatform == NULL) {
         LOR_ERROR("Invalid arguments provided.");
         return LOR_RESULT_INVALID_ARGUMENT;
     }
-    #endif
+#endif
     
     lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
     if (pPlatformConfig->sType != LOR_STRUCT_PLATFORM_CONFIG) {
@@ -235,20 +253,20 @@ void lorPlatformAnyGLFWOpengl3Destroy(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
 
 void lorPlatformAnyGLFWOpengl3Run(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
     while (pPlatform->sIsRunning) {
-        glfwPollEvents();
+        lorApplicationNewFrame(pPlatform->pApplication);
+
+        glfwPollEvents(); // This will populate the current input state in the lorApplication
         if (pPlatform->fUpdatePlatform != NULL) {
             pPlatform->sIsRunning = pPlatform->fUpdatePlatform(pPlatform->pUserData);
         }
         
+        pPlatform->sIsRunning &= lorApplicationUpdate(pPlatform->pApplication);
         
         __lorRenderFrame(pPlatform);       
         if (pPlatform->fRenderPlatform != NULL) {
             pPlatform->fRenderPlatform(pPlatform->pUserData);
         }
 		glfwSwapBuffers(pPlatform->pWindow);
-        
-        // TODO: Later just raise an event for this and let the suer handle the closure
-		pPlatform->sIsRunning = pPlatform->sIsRunning && !glfwWindowShouldClose(pPlatform->pWindow);
     }
 }
 
