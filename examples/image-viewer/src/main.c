@@ -22,7 +22,7 @@ int main() {
     platformConfig.pCustomPlatformConfig = &customPlatformConfig;
 
     lor_PlatformAnyGLFWOpengl3Ptr platform = NULL;
-    if ((result = lorPlatformAnyGLFWOpengl3(&platformConfig, &platform)) != LOR_RESULT_SUCCESS) {
+    if ((result = lorPlatformAnyGLFWOpengl3Build(&platformConfig, &platform)) != LOR_RESULT_SUCCESS) {
         fprintf(stderr, "Failed to create platform: %d\n", result);
         return EXIT_FAILURE;
     }

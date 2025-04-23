@@ -1,6 +1,7 @@
-#include <lorien/platforms/any-glfw-opengl3.h>
+#include "lorien/platforms/any-glfw-opengl3.h"
 
-#include "GLFW/glfw3.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 static lor_Result __lorPrepareGLFW(bool undecoratedWindow) {
     if (!glfwInit()) {
@@ -18,7 +19,15 @@ static lor_Result __lorPrepareGLFW(bool undecoratedWindow) {
     return LOR_RESULT_SUCCESS;
 }
 
-lor_Result lorPlatformAnyGLFWOpengl3(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform) {
+// do the rendering
+static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
+    (void)pPlatform;
+
+    // glBindFramebuffer(GL_FRAMEBUFFER, )
+
+}
+
+lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform) {
 #ifdef LOR_DEBUG
     if (pPlatformConfig == NULL || ppPlatform == NULL) {
         LOR_ERROR("Invalid arguments provided.");
@@ -88,6 +97,11 @@ lor_Result lorPlatformAnyGLFWOpengl3(lor_PlatformConfigPtr pPlatformConfig, lor_
 	}
 	glfwMakeContextCurrent(pPlatform->pWindow);
 
+    if (!gladLoadGL()) {
+        LOR_ERROR("Failed to load OpenGL functions!");
+        return LOR_RESULT_OBJECT_CREATION_FAILED;
+    }
+
     *ppPlatform = pPlatform;
     return LOR_RESULT_SUCCESS;
 }
@@ -123,6 +137,7 @@ void lorPlatformAnyGLFWOpengl3Run(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
         }
 
 
+        
         if (pPlatform->fRenderPlatform != NULL) {
             pPlatform->fRenderPlatform(pPlatform->pUserData);
         }
