@@ -28,6 +28,8 @@ struct lor_PlatformAnyGLFWOpengl3 {
     bool sIsAllocatorOwned;
     bool sIsRunning;
 
+    int32_t sFramebufferWidth;
+    int32_t sFramebufferHeight;
 	GLFWwindow* pWindow;
     
     lor_PlatformErrorFn fErrorPlatform;
@@ -41,7 +43,7 @@ typedef struct lor_PlatformAnyGLFWOpengl3 lor_PlatformAnyGLFWOpengl3;
 typedef struct lor_PlatformAnyGLFWOpengl3* lor_PlatformAnyGLFWOpengl3Ptr;
 
 // functions 
-LOR_API lor_Result lorPlatformAnyGLFWOpengl3(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform);
+LOR_API lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform);
 LOR_API void lorPlatformAnyGLFWOpengl3Destroy(lor_PlatformAnyGLFWOpengl3Ptr pPlatform);
 LOR_API void lorPlatformAnyGLFWOpengl3Run(lor_PlatformAnyGLFWOpengl3Ptr pPlatform);
 

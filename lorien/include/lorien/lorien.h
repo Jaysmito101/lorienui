@@ -50,6 +50,10 @@
 #define LOR_ERROR(msg) fprintf(stderr, "Error: %s\n", msg)
 #endif
 
+#ifndef LOR_ERROR_VERBOSE
+#define LOR_ERROR_VERBOSE(...) fprintf(stderr, "Error: " __VA_ARGS__)
+#endif
+
 #ifndef LOR_MALLOC
 #define LOR_MALLOC(size) malloc(size)
 #endif
