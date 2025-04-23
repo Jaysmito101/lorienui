@@ -110,12 +110,7 @@ void __lorGLFWWindowFocusCallback(GLFWwindow* window, int focused) {
 
 // do the rendering
 static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
-#ifdef LOR_DEBUG
-    if (pPlatform == NULL) {
-        LOR_ERROR("Invalid platform provided.");
-        return;
-    }
-#endif
+    LOR_ASSERT_MSG(pPlatform != NULL, "Invalid platform provided.");
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, pPlatform->sFramebufferWidth, pPlatform->sFramebufferHeight);
@@ -134,12 +129,8 @@ static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
 // ---------- API Functions  ----------
 
 lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig, lor_PlatformAnyGLFWOpengl3Ptr* ppPlatform) {
-#ifdef LOR_DEBUG
-    if (pPlatformConfig == NULL || ppPlatform == NULL) {
-        LOR_ERROR("Invalid arguments provided.");
-        return LOR_RESULT_INVALID_ARGUMENT;
-    }
-#endif
+    LOR_ASSERT_MSG(pPlatformConfig != NULL, "Invalid platform config provided.");
+    LOR_ASSERT_MSG(ppPlatform != NULL, "Invalid platform pointer provided.");
     
     lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
     if (pPlatformConfig->sType != LOR_STRUCT_PLATFORM_CONFIG) {
@@ -229,12 +220,10 @@ lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig,
 }
 
 void lorPlatformAnyGLFWOpengl3Destroy(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
-    #ifdef LOR_DEBUG
-    if (pPlatform == NULL) {
-        LOR_ERROR("Invalid platform provided.");
-        return;
-    }
-    #endif
+    LOR_ASSERT_MSG(pPlatform != NULL, "Invalid platform provided.");
+    LOR_ASSERT_MSG(pPlatform->pWindow != NULL, "Invalid window provided.");
+
+
     lor_Allocator allocator = pPlatform->sAllocator;
     lorApplicationDestroy(pPlatform->pApplication);
     
