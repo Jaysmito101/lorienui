@@ -117,6 +117,7 @@ typedef enum lor_UILayoutTypes lor_UILayoutTypes;
 enum lor_AllocationType {
     LOR_ALLOCATION_TYPE_GENERAL,
     LOR_ALLOCATION_TYPE_RENDERABLE_PRIMITIVE,
+    LOR_ALLOCATION_PLATFORM_VERTICES,
 };
 typedef enum lor_AllocationType lor_AllocationType;
 

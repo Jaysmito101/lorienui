@@ -109,7 +109,129 @@ void __lorGLFWWindowFocusCallback(GLFWwindow* window, int focused) {
 
 // ---------- GLFW Callbacks/Utilities End ----------
 
-// ---------- Rendering Functions ----------
+
+// ---------- OpenGL Utilities ----------
+
+void __lorGLCreateMeshBuffers(uint32_t* pVertexArrayObject, uint32_t* pVertexBuffer, uint32_t* pIndexBuffer) {
+    LOR_ASSERT_MSG(pVertexArrayObject != NULL, "Invalid vertex array object pointer provided.");
+    LOR_ASSERT_MSG(pVertexBuffer != NULL, "Invalid vertex buffer pointer provided.");
+    LOR_ASSERT_MSG(pIndexBuffer != NULL, "Invalid index buffer pointer provided.");
+
+    glGenVertexArrays(1, pVertexArrayObject);
+    glBindVertexArray(*pVertexArrayObject);
+
+    glGenBuffers(1, pVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, *pVertexBuffer);
+
+    glGenBuffers(1, pIndexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *pIndexBuffer);
+}
+
+void __lorGLDeleteMeshBuffers(uint32_t vertexArrayObject, uint32_t vertexBuffer, uint32_t indexBuffer) {
+    glDeleteVertexArrays(1, &vertexArrayObject);
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &indexBuffer);
+}
+
+void __lorGLSetupMeshBufferAttribArray(uint32_t vertexArrayObject, uint32_t vertexBuffer, uint32_t indexBuffer) {
+    glBindVertexArray(vertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+    // Set up vertex attributes (position, color, texture coordinates, etc.)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(lor_PlatformAnyGLFWOpengl3Vertex), (void*)offsetof(lor_PlatformAnyGLFWOpengl3Vertex, sX));
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(lor_PlatformAnyGLFWOpengl3Vertex), (void*)offsetof(lor_PlatformAnyGLFWOpengl3Vertex, sU));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(lor_PlatformAnyGLFWOpengl3Vertex), (void*)offsetof(lor_PlatformAnyGLFWOpengl3Vertex, sR));
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 3, GL_INT, GL_FALSE, sizeof(lor_PlatformAnyGLFWOpengl3Vertex), (void*)offsetof(lor_PlatformAnyGLFWOpengl3Vertex, sFlag0));
+    glEnableVertexAttribArray(3);
+}
+
+// ---------- OpenGL Utilities End ----------
+
+
+// ---------- Batch Renderer Functions ----------
+
+bool __lorIsBufferSizesEnough(size_t requiredVertexSize, size_t requiredIndexSize, lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer) {
+    LOR_ASSERT_MSG(pBatchRenderer != NULL, "Invalid batch renderer provided.");
+    return (requiredVertexSize + pBatchRenderer->sVertexCount <= pBatchRenderer->sVertexCapacity) &&
+           (requiredIndexSize + pBatchRenderer->sIndexCount <= pBatchRenderer->sIndexCapacity);
+}
+
+lor_Result lorPlatformAnyGLFWOpengl3BatchRendererBuild(lor_AllocatorPtr pAllocator, size_t vertexCapacity, size_t indexCapacity, lor_PlatformAnyGLFWOpengl3BatchRendererPtr* ppBatchRenderer) {
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(ppBatchRenderer != NULL, "Invalid batch renderer pointer provided.");
+
+    lor_Result result = LOR_RESULT_UNKNOWN_ERROR;
+    lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer = NULL;
+    if ((result = lorAllocatorAllocate(pAllocator, sizeof(lor_PlatformAnyGLFWOpengl3BatchRenderer), LOR_ALLOCATION_TYPE_GENERAL, (void**)&pBatchRenderer)) != LOR_RESULT_SUCCESS) {
+        LOR_ERROR("Failed to allocate batch renderer.");
+        return result;
+    }
+
+    memset(pBatchRenderer, 0, sizeof(lor_PlatformAnyGLFWOpengl3BatchRenderer)); // Initialize to zero
+    if ((result = lorAllocatorAllocate(pAllocator, sizeof(lor_PlatformAnyGLFWOpengl3Vertex) * vertexCapacity, LOR_ALLOCATION_PLATFORM_VERTICES, (void**)&pBatchRenderer->pVertices)) != LOR_RESULT_SUCCESS) {
+        return result;
+    }
+    if ((result = lorAllocatorAllocate(pAllocator, sizeof(uint32_t) * indexCapacity, LOR_ALLOCATION_PLATFORM_VERTICES, (void**)&pBatchRenderer->pIndices)) != LOR_RESULT_SUCCESS) {
+        return result;
+    }
+    pBatchRenderer->sVertexCount = 0;
+    pBatchRenderer->sVertexCapacity = vertexCapacity;
+    pBatchRenderer->sIndexCount = 0;
+    pBatchRenderer->sIndexCapacity = indexCapacity;
+
+    __lorGLCreateMeshBuffers(&pBatchRenderer->sVertexArrayObject, &pBatchRenderer->sVertexBuffer, &pBatchRenderer->sIndexBuffer);
+    __lorGLSetupMeshBufferAttribArray(pBatchRenderer->sVertexArrayObject, pBatchRenderer->sVertexBuffer, pBatchRenderer->sIndexBuffer);
+
+	*ppBatchRenderer = pBatchRenderer;  
+
+    return LOR_RESULT_SUCCESS;  
+}
+
+void lorPlatformAnyGLFWOpengl3BatchRendererDestroy(lor_AllocatorPtr pAllocator, lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer) {
+    LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
+    LOR_ASSERT_MSG(pBatchRenderer != NULL, "Invalid batch renderer provided.");
+
+    __lorGLDeleteMeshBuffers(pBatchRenderer->sVertexArrayObject, pBatchRenderer->sVertexBuffer, pBatchRenderer->sIndexBuffer);
+    lorAllocatorFastFree(pAllocator, LOR_ALLOCATION_PLATFORM_VERTICES, pBatchRenderer->pVertices);
+    lorAllocatorFastFree(pAllocator, LOR_ALLOCATION_PLATFORM_VERTICES, pBatchRenderer->pIndices);
+    lorAllocatorFastFree(pAllocator, LOR_ALLOCATION_TYPE_GENERAL, pBatchRenderer);
+}
+
+void lorPlatformAnyGLFWOpengl3BatchRendererAddVertices(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer, const lor_PlatformAnyGLFWOpengl3VertexPtr pVertices, size_t vertexCount, uint32_t* indices, size_t indicexCount) {
+    LOR_ASSERT_MSG(pBatchRenderer != NULL, "Invalid batch renderer provided.");
+    LOR_ASSERT_MSG(pVertices != NULL, "Invalid vertices pointer provided.");
+    LOR_ASSERT_MSG(indices != NULL, "Invalid indices pointer provided.");
+
+    LOR_ASSERT_MSG(vertexCount > 0, "Invalid vertex count provided.");
+    LOR_ASSERT_MSG(indicexCount > 0, "Invalid index count provided.");
+
+    LOR_ASSERT_MSG(vertexCount + pBatchRenderer->sVertexCount <= pBatchRenderer->sVertexCapacity, "Vertex count exceeds capacity.");
+    LOR_ASSERT_MSG(indicexCount + pBatchRenderer->sIndexCount <= pBatchRenderer->sIndexCapacity, "Index count exceeds capacity.");
+
+    // copy vertices and indices to the batch renderer
+    memcpy(&pBatchRenderer->pVertices[pBatchRenderer->sVertexCount], pVertices, sizeof(lor_PlatformAnyGLFWOpengl3Vertex) * vertexCount);
+    memcpy(&pBatchRenderer->pIndices[pBatchRenderer->sIndexCount], indices, sizeof(uint32_t) * indicexCount);
+
+    pBatchRenderer->sVertexCount += vertexCount;
+    pBatchRenderer->sIndexCount += indicexCount;
+
+    return LOR_RESULT_SUCCESS;
+}
+
+// ---------- Batch Renderer Functions End ----------
+
+static void __lorRenderPrimitiveRecursive(lor_RenderablePrimitivePtr pRootRenderablePrimitive) {
+    LOR_ASSERT_MSG(pRootRenderablePrimitive != NULL, "Invalid renderable primitive provided.");
+
+    
+}
 
 // do the rendering
 static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
@@ -120,11 +242,13 @@ static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    
 
+    lor_RenderablePrimitivePtr pRootRenderablePrimitive = pPlatform->pApplication->pRootRenderablePrimitive;
 
-    
-    
+    // render the scene
+    if (pRootRenderablePrimitive != NULL) {
+        __lorRenderPrimitiveRecursive(pRootRenderablePrimitive);
+    } 
 }
 
 // ---------- Rendering Functions End  ----------
@@ -217,6 +341,12 @@ lor_Result lorPlatformAnyGLFWOpengl3Build(lor_PlatformConfigPtr pPlatformConfig,
     glfwSetFramebufferSizeCallback(pPlatform->pWindow, __lorGLFWFramebufferSizeCallback);
     glfwSetWindowMaximizeCallback(pPlatform->pWindow, __lorGLFWWindowMaximizeCallback);
     glfwSetWindowFocusCallback(pPlatform->pWindow, __lorGLFWWindowFocusCallback);
+
+    // build the batch renderer
+    if ((result = lorPlatformAnyGLFWOpengl3BatchRendererBuild(&allocator, 1000, 1000, &pPlatform->pBatchRenderer)) != LOR_RESULT_SUCCESS) {
+        LOR_ERROR("Failed to build batch renderer.");
+        return result;
+    }
     
     *ppPlatform = pPlatform;
     return LOR_RESULT_SUCCESS;
@@ -226,6 +356,8 @@ void lorPlatformAnyGLFWOpengl3Destroy(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
     LOR_ASSERT_MSG(pPlatform != NULL, "Invalid platform provided.");
     LOR_ASSERT_MSG(pPlatform->pWindow != NULL, "Invalid window provided.");
 
+
+    lorPlatformAnyGLFWOpengl3BatchRendererDestroy(&pPlatform->sAllocator, pPlatform->pBatchRenderer);
 
     lor_Allocator allocator = pPlatform->sAllocator;
     lorApplicationDestroy(pPlatform->pApplication);
