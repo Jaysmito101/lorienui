@@ -88,8 +88,11 @@ void __lorGLFWMouseButtonCallback(GLFWwindow* window, int button, int action, in
 
 void __lorGLFWFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
     lor_PlatformAnyGLFWOpengl3Ptr pPlatform = (lor_PlatformAnyGLFWOpengl3Ptr)glfwGetWindowUserPointer(window);
-    pPlatform->sFramebufferWidth = width;
-    pPlatform->sFramebufferHeight = height;
+    pPlatform->sFramebufferSize.sWidth = width;
+    pPlatform->sFramebufferSize.sHeight = height;
+    lor_InputStatePtr pInputState = lorApplicationGetInputState(pPlatform->pApplication);
+    pInputState->sFramebufferSize.sWidth = (float)width;
+    pInputState->sFramebufferSize.sHeight = (float)height;
 }
 
 void __lorGLFWWindowMaximizeCallback(GLFWwindow* window, int maximized) {
@@ -113,7 +116,7 @@ static void __lorRenderFrame(lor_PlatformAnyGLFWOpengl3Ptr pPlatform) {
     LOR_ASSERT_MSG(pPlatform != NULL, "Invalid platform provided.");
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, pPlatform->sFramebufferWidth, pPlatform->sFramebufferHeight);
+    glViewport(0, 0, pPlatform->sFramebufferSize.sWidth, pPlatform->sFramebufferSize.sHeight);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     

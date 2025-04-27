@@ -8,6 +8,8 @@ set(LORIEN_SOURCES
     "src/lorien_allocator.c"
     "src/lorien_application.c"
     "src/lorien_input_state.c"
+    "src/lorien_renderable_prim.c"
+    "src/lorien_math_utils.c"
     "src/lorien.c"
 )   
 

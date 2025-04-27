@@ -28,8 +28,7 @@ struct lor_PlatformAnyGLFWOpengl3 {
     bool sIsAllocatorOwned;
     bool sIsRunning;
 
-    int32_t sFramebufferWidth;
-    int32_t sFramebufferHeight;
+    lor_ISize sFramebufferSize;
 	GLFWwindow* pWindow;
     
     lor_PlatformErrorFn fErrorPlatform;

@@ -75,6 +75,10 @@
 #define LOR_FREE(ptr) free(ptr)
 #endif
 
+#ifndef LOR_MAX_CHILDREN
+#define LOR_MAX_CHILDREN 64
+#endif
+
 
 // in lor color is a rgba inside a uint32t
 #define LOR_PACK_RGBA(r, g, b, a) ((uint32_t)((((uint32_t)(a) & 0xFF) << 24) | (((uint32_t)(b) & 0xFF) << 16) | (((uint32_t)(g) & 0xFF) << 8) | ((uint32_t)(r) & 0xFF)))
@@ -90,8 +94,17 @@ enum lor_StructTypes {
     LOR_STRUCT_UI_LAYOUT,
     LOR_STRUCT_ALLOCATOR,
     LOR_STRUCT_INPUT_STATE,
+    LOR_STRUCT_RENDERABLE_PRIMITIVE
 };
 typedef enum lor_StructTypes lor_StructTypes;
+
+enum lor_PrimTypes {
+    LOR_PRIM_TYPE_VOID,
+    LOR_PRIM_TYPE_RECT,
+    LOR_PRIM_TYPE_CIRCLE,
+    LOR_PRIM_TYPE_MESH,
+};
+typedef enum lor_PrimTypes lor_PrimTypes;
 
 enum lor_UILayoutTypes {
     LOR_UI_LAYOUT_TYPE_FLOW,
@@ -103,6 +116,7 @@ typedef enum lor_UILayoutTypes lor_UILayoutTypes;
 
 enum lor_AllocationType {
     LOR_ALLOCATION_TYPE_GENERAL,
+    LOR_ALLOCATION_TYPE_RENDERABLE_PRIMITIVE,
 };
 typedef enum lor_AllocationType lor_AllocationType;
 
@@ -148,6 +162,40 @@ typedef void (*lor_PlatformDestroyFn)(void*, struct lor_Allocator*);
 
 typedef bool (*lor_ConfirmationFn)(void*);
 
+// utility structs
+struct lor_Size {
+    float sWidth;
+    float sHeight;
+};
+typedef struct lor_Size lor_Size;
+typedef lor_Size* lor_SizePtr;
+
+struct lor_Point {
+    float sX;
+    float sY;
+};
+typedef struct lor_Point lor_Point;
+typedef lor_Point* lor_PointPtr;
+
+struct lor_ISize {
+    int32_t sWidth;
+    int32_t sHeight;
+};
+typedef struct lor_ISize lor_ISize;
+typedef lor_ISize* lor_ISizePtr;
+
+
+union lor_Rect {
+    float sMinX;
+    float sMinY;
+    float sMaxX;
+    float sMaxY;
+};
+typedef union lor_Rect lor_Rect;
+typedef lor_Rect* lor_RectPtr;
+
+typedef uint32_t lor_Color;
+
 // structs
 struct lor_Allocator {
     enum lor_StructTypes sType;
@@ -164,6 +212,7 @@ struct lor_InputState {
     lor_StructTypes sType;
 
     bool sShouldWindowClose;
+    lor_Size sFramebufferSize;
 };
 typedef struct lor_InputState lor_InputState;
 typedef lor_InputState* lor_InputStatePtr;
@@ -202,6 +251,52 @@ struct lor_UILayout {
 typedef struct lor_UILayout lor_UILayout;
 typedef lor_UILayout* lor_UILayoutPtr;
 
+struct lor_RenderablePrimitiveRect {
+    lor_PrimTypes sType;
+};
+typedef struct lor_RenderablePrimitiveRect lor_RenderablePrimitiveRect;
+typedef lor_RenderablePrimitiveRect* lor_RenderablePrimitiveRectPtr;
+
+struct lor_RenderablePrimitiveCircle {
+    lor_PrimTypes sType;
+    float sRadius;
+    size_t sSegments; // may or may not be used by the platform 
+};
+typedef struct lor_RenderablePrimitiveCircle lor_RenderablePrimitiveCircle;
+typedef lor_RenderablePrimitiveCircle* lor_RenderablePrimitiveCirclePtr;
+
+struct lor_RenderablePrimitiveMesh {
+    lor_PrimTypes sType;
+    size_t sVertexCount;
+    size_t sIndexCount;
+    float* pVertices; // array of vertices
+    uint32_t* pIndices; // array of indices
+};
+typedef struct lor_RenderablePrimitiveMesh lor_RenderablePrimitiveMesh;
+typedef lor_RenderablePrimitiveMesh* lor_RenderablePrimitiveMeshPtr;
+
+union lor_RenderablePrimitiveData {
+    lor_PrimTypes sType; // for type checking
+    lor_RenderablePrimitiveRect sRect;
+    lor_RenderablePrimitiveCircle sCircle;
+    lor_RenderablePrimitiveMesh sMesh;
+};
+typedef union lor_RenderablePrimitiveData lor_RenderablePrimitiveData;
+typedef lor_RenderablePrimitiveData* lor_RenderablePrimitiveDataPtr;
+
+struct lor_RenderablePrimitive {
+    lor_StructTypes sType;
+    lor_RenderablePrimitiveData sData;
+    lor_Rect sRect;
+    struct lor_RenderablePrimitive* pParent;
+    struct lor_RenderablePrimitive* pChildren[LOR_MAX_CHILDREN]; // array of children
+    size_t sChildrenCount;
+    size_t sId;
+};
+typedef struct lor_RenderablePrimitive lor_RenderablePrimitive;
+typedef lor_RenderablePrimitive* lor_RenderablePrimitivePtr;
+
+
 struct lor_ApplicationConfig {
     lor_StructTypes sType;
     lor_BuildUIFn fBuildUI;
@@ -221,7 +316,9 @@ struct lor_Application {
     lor_InputState sCurrentInputState;
     lor_InputState sPreviousInputState;
     
+    lor_RenderablePrimitive* pRootRenderablePrimitive;
     lor_ConfirmationFn fShouldClose;
+    
     void* pUserData;
 };
 typedef struct lor_Application lor_Application;
@@ -255,6 +352,18 @@ typedef lor_PlatformError* lor_PlatformErrorPtr;
 
 
 // functions
+
+LOR_API size_t lorGenerateUniqueId();
+
+LOR_API void lorRectFillMinMax(lor_Rect* pRect, float minX, float minY, float maxX, float maxY);
+LOR_API void lorRectFillPosSize(lor_Rect* pRect, float posX, float posY, float sizeX, float sizeY);
+LOR_API lor_Rect lorRectMinMax(float minX, float minY, float maxX, float maxY);
+LOR_API lor_Rect lorRectPosSize(float posX, float posY, float sizeX, float sizeY);
+LOR_API lor_Point lorPoint(float x, float y);
+LOR_API lor_ISize lorISize(int32_t width, int32_t height);
+LOR_API lor_Size lorSize(float width, float height);
+
+
 LOR_API lor_Result lorGetDefaultAllocator(lor_AllocatorPtr pAllocator);
 
 LOR_API void lorAllocatorDestroy(lor_AllocatorPtr pAllocator);
@@ -266,6 +375,14 @@ LOR_API void lorAllocatorDefragment(lor_AllocatorPtr pAllocator);
 LOR_API void lorInputStateNewFrame(lor_InputStatePtr pInputState);
 LOR_API void lorInputStateSwap(lor_InputStatePtr pCurrentState, lor_InputStatePtr pPreviousState);
 LOR_API void lorInputStateReset(lor_InputStatePtr pInputState);
+
+LOR_API lor_Result lorRenderablePrimitiveAllocate(lor_AllocatorPtr pAllocator, lor_RenderablePrimitivePtr* ppRenderablePrimitive, lor_PrimTypes sType);
+LOR_API void lorRenderablePrimitiveDestroyRecursive(lor_AllocatorPtr pAllocator, lor_RenderablePrimitivePtr pRenderablePrimitive);
+LOR_API void lorRenderablePrimitiveDestroy(lor_AllocatorPtr pAllocator, lor_RenderablePrimitivePtr pRenderablePrimitive);
+LOR_API void lorRenderablePrimitiveDetach(lor_RenderablePrimitivePtr pRenderablePrimitive);
+LOR_API const char* lorRenderablePrimitiveGetTypeString(lor_PrimTypes sType);
+LOR_API void lorRenderablePrimitiveLogTree(lor_RenderablePrimitivePtr pRenderablePrimitive);
+
 
 LOR_API lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_ApplicationPtr* ppApplication);
 LOR_API void lorApplicationDestroy(lor_ApplicationPtr pApplication);
