@@ -49,15 +49,41 @@ lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_Application
     // (no validations done here as its just a test)
     lorRenderablePrimitiveAllocate(&allocator, &pApplication->pRootRenderablePrimitive, LOR_PRIM_TYPE_VOID);
 
-    lorRenderablePrimitiveAllocate(&allocator, &pApplication->pRootRenderablePrimitive->pChildren[0], LOR_PRIM_TYPE_RECT);
-    lorRectFillPosSize(&pApplication->pRootRenderablePrimitive->pChildren[0]->sRect, 0, 0, 100, 100);
-    lorRenderablePrimitiveAllocate(&allocator, &pApplication->pRootRenderablePrimitive->pChildren[1], LOR_PRIM_TYPE_CIRCLE);
-    lorRectFillPosSize(&pApplication->pRootRenderablePrimitive->pChildren[1]->sRect, 50, 50, 150, 150);
-    lorRenderablePrimitiveAllocate(&allocator, &pApplication->pRootRenderablePrimitive->pChildren[2], LOR_PRIM_TYPE_MESH);
-    lorRectFillPosSize(&pApplication->pRootRenderablePrimitive->pChildren[2]->sRect, 100, 100, 200, 200);
-    pApplication->pRootRenderablePrimitive->sChildrenCount = 3;
+    // build a 10-node test tree
+    lor_RenderablePrimitivePtr root = pApplication->pRootRenderablePrimitive;
 
-    lorRenderablePrimitiveLogTree(pApplication->pRootRenderablePrimitive);
+    // 1) three direct children of root
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0], LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&root->pChildren[0]->sRect, 0,   0, 100, 100);
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1], LOR_PRIM_TYPE_CIRCLE);
+    lorRectFillPosSize(&root->pChildren[1]->sRect, 50,  50, 150, 150);
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[2], LOR_PRIM_TYPE_MESH);
+    lorRectFillPosSize(&root->pChildren[2]->sRect,100, 100, 200, 200);
+    root->sChildrenCount = 3;
+
+    // 2) two grandchildren under child 0 (now node count = 1+3+2 = 6)
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0]->pChildren[0], LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&root->pChildren[0]->pChildren[0]->sRect, 10, 10,  60,  60);
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0]->pChildren[1], LOR_PRIM_TYPE_CIRCLE);
+    lorRectFillPosSize(&root->pChildren[0]->pChildren[1]->sRect, 20, 20,  70,  70);
+    root->pChildren[0]->sChildrenCount = 2;
+
+    // 3) three grandchildren under child 1 (now node count = 6+3 = 9)
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[0], LOR_PRIM_TYPE_MESH);
+    lorRectFillPosSize(&root->pChildren[1]->pChildren[0]->sRect, 55, 55,  80,  80);
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[1], LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&root->pChildren[1]->pChildren[1]->sRect, 65, 65,  85,  85);
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[2], LOR_PRIM_TYPE_CIRCLE);
+    lorRectFillPosSize(&root->pChildren[1]->pChildren[2]->sRect, 75, 75,  95,  95);
+    root->pChildren[1]->sChildrenCount = 3;
+
+    // 4) one grandchild under child 2 (now node count = 9+1 = 10)
+    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[2]->pChildren[0], LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&root->pChildren[2]->pChildren[0]->sRect,100,100,120,120);
+    root->pChildren[2]->sChildrenCount = 1;
+
+    // log the full 10-node tree
+    lorRenderablePrimitiveLogTree(root);
 
     return LOR_RESULT_SUCCESS;
 }
