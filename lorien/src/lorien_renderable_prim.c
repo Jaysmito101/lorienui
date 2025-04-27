@@ -28,10 +28,9 @@ void lorRenderablePrimitiveDestroyRecursive(lor_AllocatorPtr pAllocator, lor_Ren
     LOR_ASSERT_MSG(pRenderablePrimitive != NULL, "Invalid renderable primitive provided.");
     LOR_ASSERT_MSG(pAllocator != NULL, "Invalid allocator provided.");
 
-    lorRenderablePrimitiveDetach(pRenderablePrimitive); // unlink the child from the parenta
-
+    
     // loop through all the children and destroy them recursively
-
+    
     if (pRenderablePrimitive->sChildrenCount > 0)
     {
         for (size_t i = 0; i < LOR_MAX_CHILDREN; i++)
@@ -42,8 +41,7 @@ void lorRenderablePrimitiveDestroyRecursive(lor_AllocatorPtr pAllocator, lor_Ren
                 lorRenderablePrimitiveDestroyRecursive(pAllocator, pChild);
             }
         }
-    }
-
+    }    
     lorRenderablePrimitiveDestroy(pAllocator, pRenderablePrimitive); // destroy the current primitive
 }
 
