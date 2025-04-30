@@ -81,7 +81,7 @@
 
 
 // in lor color is a rgba inside a uint32t
-#define LOR_PACK_RGBA(r, g, b, a) ((uint32_t)((((uint32_t)(a) & 0xFF) << 24) | (((uint32_t)(b) & 0xFF) << 16) | (((uint32_t)(g) & 0xFF) << 8) | ((uint32_t)(r) & 0xFF)))
+#define LOR_PACK_RGBA(r, g, b, a) ((lor_Color)((((uint32_t)(a) & 0xFF) << 24) | (((uint32_t)(b) & 0xFF) << 16) | (((uint32_t)(g) & 0xFF) << 8) | ((uint32_t)(r) & 0xFF)))
 
 // enums
 enum lor_StructTypes {
@@ -101,7 +101,6 @@ typedef enum lor_StructTypes lor_StructTypes;
 enum lor_PrimTypes {
     LOR_PRIM_TYPE_VOID,
     LOR_PRIM_TYPE_RECT,
-    LOR_PRIM_TYPE_CIRCLE,
     LOR_PRIM_TYPE_MESH,
 };
 typedef enum lor_PrimTypes lor_PrimTypes;
@@ -267,19 +266,11 @@ struct lor_RenderablePrimitiveRect {
 typedef struct lor_RenderablePrimitiveRect lor_RenderablePrimitiveRect;
 typedef lor_RenderablePrimitiveRect* lor_RenderablePrimitiveRectPtr;
 
-struct lor_RenderablePrimitiveCircle {
-    lor_PrimTypes sType;
-    float sRadius;
-    size_t sSegments; // may or may not be used by the platform 
-};
-typedef struct lor_RenderablePrimitiveCircle lor_RenderablePrimitiveCircle;
-typedef lor_RenderablePrimitiveCircle* lor_RenderablePrimitiveCirclePtr;
-
 struct lor_RenderablePrimitiveMesh {
     lor_PrimTypes sType;
     size_t sVertexCount;
     size_t sIndexCount;
-    float* pVertices; // array of vertices
+    lor_VertexPtr pVertices; // array of vertices
     uint32_t* pIndices; // array of indices
 };
 typedef struct lor_RenderablePrimitiveMesh lor_RenderablePrimitiveMesh;
@@ -288,7 +279,6 @@ typedef lor_RenderablePrimitiveMesh* lor_RenderablePrimitiveMeshPtr;
 union lor_RenderablePrimitiveData {
     lor_PrimTypes sType; // for type checking
     lor_RenderablePrimitiveRect sRect;
-    lor_RenderablePrimitiveCircle sCircle;
     lor_RenderablePrimitiveMesh sMesh;
 };
 typedef union lor_RenderablePrimitiveData lor_RenderablePrimitiveData;
@@ -302,6 +292,7 @@ struct lor_RenderablePrimitive {
     struct lor_RenderablePrimitive* pChildren[LOR_MAX_CHILDREN]; // array of children
     size_t sChildrenCount;
     size_t sId;
+    lor_Color sColor;
 };
 typedef struct lor_RenderablePrimitive lor_RenderablePrimitive;
 typedef lor_RenderablePrimitive* lor_RenderablePrimitivePtr;
@@ -378,6 +369,12 @@ LOR_API lor_Point lorRectGetMin(const lor_Rect* pRect);
 LOR_API lor_Point lorPoint(float x, float y);
 LOR_API lor_ISize lorISize(int32_t width, int32_t height);
 LOR_API lor_Size lorSize(float width, float height);
+
+LOR_API lor_Color lorColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+LOR_API uint8_t lorColorGetChannel(lor_Color color, uint8_t channel);
+LOR_API float lorColorGetChannelF32(lor_Color color, uint8_t channel);
+LOR_API void lorColorSetChannel(lor_Color* color, uint8_t channel, uint8_t value);
+LOR_API void lorColorSetChannelF32(lor_Color* color, uint8_t channel, float value);
 
 
 LOR_API lor_Result lorGetDefaultAllocator(lor_AllocatorPtr pAllocator);

@@ -25,6 +25,8 @@ struct lor_PlatformAnyGLFWOpengl3BatchRenderer {
     lor_Rect sCurrentRect;
     lor_Rect viewportRect;
 
+    bool sLayoutDebuggingEnabled;
+
     uint32_t* pIndices;
     size_t sIndexCount;
     size_t sIndexCapacity;

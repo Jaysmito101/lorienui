@@ -96,8 +96,6 @@ const char* lorRenderablePrimitiveGetTypeString(lor_PrimTypes sType) {
         return "LOR_PRIM_TYPE_VOID";
     case LOR_PRIM_TYPE_RECT:
         return "LOR_PRIM_TYPE_RECT";
-    case LOR_PRIM_TYPE_CIRCLE:
-        return "LOR_PRIM_TYPE_CIRCLE";
     case LOR_PRIM_TYPE_MESH:
         return "LOR_PRIM_TYPE_MESH";
     default:
