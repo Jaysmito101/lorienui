@@ -12,24 +12,18 @@ typedef struct GLFWwindow GLFWwindow;
 
 
 // struct 
-struct lor_PlatformAnyGLFWOpengl3Vertex {
-    float sX, sY, sZ;
-    float sU, sV;
-    float sR, sG, sB, sA;
-    int32_t sFlag0, sFlag1, sFlag2;
-};
-typedef struct lor_PlatformAnyGLFWOpengl3Vertex lor_PlatformAnyGLFWOpengl3Vertex;
-typedef struct lor_PlatformAnyGLFWOpengl3Vertex* lor_PlatformAnyGLFWOpengl3VertexPtr;
-
 struct lor_PlatformAnyGLFWOpengl3BatchRenderer {
     uint32_t sVertexArrayObject;
     uint32_t sVertexBuffer;
     uint32_t sIndexBuffer;
     uint32_t sShaderProgram;    
 
-    lor_PlatformAnyGLFWOpengl3Vertex* pVertices;
+    lor_Vertex* pVertices;
     size_t sVertexCount;
     size_t sVertexCapacity; 
+
+    lor_Rect sCurrentRect;
+    lor_Rect viewportRect;
 
     uint32_t* pIndices;
     size_t sIndexCount;
@@ -75,6 +69,9 @@ LOR_API void lorPlatformAnyGLFWOpengl3Run(lor_PlatformAnyGLFWOpengl3Ptr pPlatfor
 
 LOR_API lor_Result lorPlatformAnyGLFWOpengl3BatchRendererBuild(lor_AllocatorPtr pAllocator, size_t initialVertexSize, size_t initialIndexSize, lor_PlatformAnyGLFWOpengl3BatchRendererPtr* ppBatchRenderer);
 LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererDestroy(lor_AllocatorPtr pAllocator, lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer);
-LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererAddVertices(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer, const lor_PlatformAnyGLFWOpengl3VertexPtr pVertices, size_t vertexCount, uint32_t* indices, size_t indicexCount);
+LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererAddVertices(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer, const lor_VertexPtr pVertices, size_t vertexCount, uint32_t* indices, size_t indicexCount);
+LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererAddPrim(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer, const lor_RenderablePrimitivePtr pPrimitive);
+LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererFlush(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer);
+LOR_API void lorPlatformAnyGLFWOpengl3BatchRendererSetViewport(lor_PlatformAnyGLFWOpengl3BatchRendererPtr pBatchRenderer, float x, float y, float width, float height);
 
 #endif // LORIEN_PLATFORM_ANY_GLFW_OPENGL3_H

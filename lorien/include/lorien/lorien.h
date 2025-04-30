@@ -186,16 +186,25 @@ typedef struct lor_ISize lor_ISize;
 typedef lor_ISize* lor_ISizePtr;
 
 
-union lor_Rect {
+struct lor_Rect {
     float sMinX;
     float sMinY;
     float sMaxX;
     float sMaxY;
 };
-typedef union lor_Rect lor_Rect;
+typedef struct lor_Rect lor_Rect;
 typedef lor_Rect* lor_RectPtr;
 
 typedef uint32_t lor_Color;
+
+struct lor_Vertex {
+    float sX, sY, sZ;
+    float sU, sV;
+    float sR, sG, sB, sA;
+    int32_t sFlag0, sFlag1, sFlag2;
+};
+typedef struct lor_Vertex lor_Vertex;
+typedef lor_Vertex* lor_VertexPtr;
 
 // structs
 struct lor_Allocator {
@@ -360,6 +369,12 @@ LOR_API void lorRectFillMinMax(lor_Rect* pRect, float minX, float minY, float ma
 LOR_API void lorRectFillPosSize(lor_Rect* pRect, float posX, float posY, float sizeX, float sizeY);
 LOR_API lor_Rect lorRectMinMax(float minX, float minY, float maxX, float maxY);
 LOR_API lor_Rect lorRectPosSize(float posX, float posY, float sizeX, float sizeY);
+LOR_API void lorRectUnionInplace(lor_Rect* pRect, const lor_Rect* pOtherRect);  
+LOR_API lor_Rect lorRectUnion(const lor_Rect* pRect, const lor_Rect* pOtherRect);
+LOR_API lor_Size lorRectGetSize(const lor_Rect* pRect);
+LOR_API lor_Point lorRectGetCenter(const lor_Rect* pRect);
+LOR_API lor_Point lorRectGetMin(const lor_Rect* pRect);
+
 LOR_API lor_Point lorPoint(float x, float y);
 LOR_API lor_ISize lorISize(int32_t width, int32_t height);
 LOR_API lor_Size lorSize(float width, float height);

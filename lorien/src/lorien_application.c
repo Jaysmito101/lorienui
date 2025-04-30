@@ -49,40 +49,52 @@ lor_Result lorApplicationBuild(lor_ApplicationConfigPtr pConfig, lor_Application
     // (no validations done here as its just a test)
     lorRenderablePrimitiveAllocate(&allocator, &pApplication->pRootRenderablePrimitive, LOR_PRIM_TYPE_VOID);
 
-    // build a 10-node test tree
+    // build a test tree mimicking a window
     lor_RenderablePrimitivePtr root = pApplication->pRootRenderablePrimitive;
+    lor_RenderablePrimitivePtr titleBar = NULL;
+    lor_RenderablePrimitivePtr closeIcon = NULL;
+    lor_RenderablePrimitivePtr button1 = NULL;
+    lor_RenderablePrimitivePtr button2 = NULL;
+    lor_RenderablePrimitivePtr button3 = NULL;
 
-    // 1) three direct children of root
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0], LOR_PRIM_TYPE_RECT);
-    lorRectFillPosSize(&root->pChildren[0]->sRect, 0,   0, 100, 100);
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1], LOR_PRIM_TYPE_CIRCLE);
-    lorRectFillPosSize(&root->pChildren[1]->sRect, 50,  50, 150, 150);
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[2], LOR_PRIM_TYPE_MESH);
-    lorRectFillPosSize(&root->pChildren[2]->sRect,100, 100, 200, 200);
-    root->sChildrenCount = 3;
+    // 1) Root Window Background (RECT) - Initial size, will be centered and resized in lorApplicationUpdate
+    lorRenderablePrimitiveAllocate(&allocator, &root, LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&root->sRect, 0, 0, 800, 600); // Example initial size, origin (0,0) is top-left
+    pApplication->pRootRenderablePrimitive = root; // Re-assign root as it was reallocated
 
-    // 2) two grandchildren under child 0 (now node count = 1+3+2 = 6)
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0]->pChildren[0], LOR_PRIM_TYPE_RECT);
-    lorRectFillPosSize(&root->pChildren[0]->pChildren[0]->sRect, 10, 10,  60,  60);
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[0]->pChildren[1], LOR_PRIM_TYPE_CIRCLE);
-    lorRectFillPosSize(&root->pChildren[0]->pChildren[1]->sRect, 20, 20,  70,  70);
-    root->pChildren[0]->sChildrenCount = 2;
+    // 2) Title Bar (RECT) - child of root, positioned at the bottom
+    lorRenderablePrimitiveAllocate(&allocator, &titleBar, LOR_PRIM_TYPE_RECT);
+    // Position near bottom of 800x600 initial area: Y from 565 to 595
+    lorRectFillPosSize(&titleBar->sRect, 5, 565, 790, 30);
+    root->pChildren[0] = titleBar;
 
-    // 3) three grandchildren under child 1 (now node count = 6+3 = 9)
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[0], LOR_PRIM_TYPE_MESH);
-    lorRectFillPosSize(&root->pChildren[1]->pChildren[0]->sRect, 55, 55,  80,  80);
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[1], LOR_PRIM_TYPE_RECT);
-    lorRectFillPosSize(&root->pChildren[1]->pChildren[1]->sRect, 65, 65,  85,  85);
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[1]->pChildren[2], LOR_PRIM_TYPE_CIRCLE);
-    lorRectFillPosSize(&root->pChildren[1]->pChildren[2]->sRect, 75, 75,  95,  95);
-    root->pChildren[1]->sChildrenCount = 3;
+    // 3) Close Icon (RECT) - child of title bar, positioned bottom-right within title bar
+    lorRenderablePrimitiveAllocate(&allocator, &closeIcon, LOR_PRIM_TYPE_RECT);
+    // Position within title bar's coords (5, 565) to (795, 595) -> Icon at X=765, Y=570
+    lorRectFillPosSize(&closeIcon->sRect, 765, 570, 20, 20);
+    titleBar->pChildren[0] = closeIcon;
+    titleBar->sChildrenCount = 1;
 
-    // 4) one grandchild under child 2 (now node count = 9+1 = 10)
-    lorRenderablePrimitiveAllocate(&allocator, &root->pChildren[2]->pChildren[0], LOR_PRIM_TYPE_RECT);
-    lorRectFillPosSize(&root->pChildren[2]->pChildren[0]->sRect,100,100,120,120);
-    root->pChildren[2]->sChildrenCount = 1;
+    // 4) Button 1 (RECT) - child of root, positioned above title bar
+    lorRenderablePrimitiveAllocate(&allocator, &button1, LOR_PRIM_TYPE_RECT);
+    // Position above title bar (which starts at Y=565)
+    lorRectFillPosSize(&button1->sRect, 50, 500, 100, 40);
+    root->pChildren[1] = button1;
 
-    // log the full 10-node tree
+    // 5) Button 2 (RECT) - child of root
+    lorRenderablePrimitiveAllocate(&allocator, &button2, LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&button2->sRect, 50, 450, 100, 40);
+    root->pChildren[2] = button2;
+
+    // 6) Button 3 (RECT) - child of root
+    lorRenderablePrimitiveAllocate(&allocator, &button3, LOR_PRIM_TYPE_RECT);
+    lorRectFillPosSize(&button3->sRect, 50, 400, 100, 40);
+    root->pChildren[3] = button3;
+
+    // Root has 4 children: Title Bar, Button1, Button2, Button3
+    root->sChildrenCount = 4;
+
+    // log the new tree structure
     lorRenderablePrimitiveLogTree(root);
 
     return LOR_RESULT_SUCCESS;
@@ -116,7 +128,10 @@ bool lorApplicationUpdate(lor_ApplicationPtr pApplication)
         shouldContinue = !pApplication->fShouldClose(pApplication->pUserData);
     }
 
-    lorRectFillMinMax(&pApplication->pRootRenderablePrimitive->sRect, 0, 0, pApplication->sCurrentInputState.sFramebufferSize.sWidth, pApplication->sCurrentInputState.sFramebufferSize.sHeight);
+    // --- Center the root primitive ---
+    int fbW = pApplication->sCurrentInputState.sFramebufferSize.sWidth;
+    int fbH = pApplication->sCurrentInputState.sFramebufferSize.sHeight;
+    lorRectFillMinMax(&pApplication->pRootRenderablePrimitive->sRect, 0.0, 0.0, fbW, fbH);
 
     return shouldContinue;
 }
